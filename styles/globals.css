@@ -1,0 +1,10 @@
+@import "tailwindcss/preflight";   /* replaces @tailwind base */
+@import "tailwindcss/components";  /* replaces @tailwind components */
+@import "tailwindcss/utilities";   /* replaces @tailwind utilities */
+
+/* Optional: Custom global styles */
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+
