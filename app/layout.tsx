@@ -2,7 +2,6 @@
 
 import "../styles/bootstrap-custom.scss";
 import "toastify-js/src/toastify.css";
-import Script from "next/script";
 import { usePathname } from "next/navigation";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -10,7 +9,7 @@ import ChatBot from "../components/ChatBot";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAdmin = pathname.startsWith("/admin"); // Detect admin route
+  const isAdmin = pathname.startsWith("/admin"); 
 
   return (
     <html lang="en">

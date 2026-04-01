@@ -9,6 +9,7 @@ export default function Navbar() {
   const [search, setSearch] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
 const [showModal, setShowModal] = useState(false);
+const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -47,15 +48,14 @@ const [showModal, setShowModal] = useState(false);
           </Link>
 
           <button
-            className="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarContent"
-          >
-            <span className="navbar-toggler-icon" />
-          </button>
+  className="navbar-toggler"
+  type="button"
+  onClick={() => setIsOpen(!isOpen)}
+>
+  <span className="navbar-toggler-icon" />
+</button>
 
-          <div className="collapse navbar-collapse" id="navbarContent">
+         <div className={`collapse navbar-collapse ${isOpen ? "show" : ""}`} id="navbarContent">
        <ul className="navbar-nav me-auto gap-3">
   <li className="nav-item">
     <Link href="/" className="nav-link text-white fw-semibold">
