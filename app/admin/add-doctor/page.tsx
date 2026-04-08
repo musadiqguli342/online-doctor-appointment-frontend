@@ -53,6 +53,7 @@ export default function AddDoctorPage() {
     image: null as File | null,
   });
 
+  
 
   const handleLetterInput = (e: ChangeEvent<HTMLInputElement>, field: "name" | "languages") => {
   const value = e.target.value.replace(/[^a-zA-Z\s]/g, ""); 
@@ -146,7 +147,20 @@ export default function AddDoctorPage() {
   };
 
   // ================= VALIDATION =================
-const validateDoctorForm = (doctor: Partial<Doctor> & { image?: File | null }) => {
+type DoctorForm = {
+  name: string;
+  specialization: string;
+  email: string;
+  phone: string;
+  experience?: string;
+  education?: string;
+  certifications?: string;
+  languages?: string;
+  hospital?: string;
+  image?: File | null;
+};
+
+const validateDoctorForm = (doctor: DoctorForm) => {
   const { name, specialization, email, phone } = doctor;
 
   if (!name || !specialization || !email || !phone)
