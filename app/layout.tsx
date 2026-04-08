@@ -1,12 +1,14 @@
 "use client";
 
 import "../styles/bootstrap-custom.scss";
-import "toastify-js/src/toastify.css";
 import { usePathname } from "next/navigation";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import ChatBot from "../components/ChatBot";
+import dynamic from "next/dynamic"
 
+const ChatBot = dynamic(() => import("../components/ChatBot"), {
+  ssr: false,
+});
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith("/admin"); 
@@ -18,11 +20,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {!isAdmin && <Navbar />}
 
         {/* Main content area */}
-        <main className="pt-[72px] flex-grow-1 flex items-center justify-center bg-gray-50">
+        <main className="pt-[72px] flex-grow-1 bg-gray-50">
           {children}
 
           {/* Only show ChatBot on non-admin pages */}
-          {!isAdmin && <ChatBot />}
+          {!isAdmin && pathname === "/" && <ChatBot />}
         </main>
 
         {/* Footer only for non-admin pages */}

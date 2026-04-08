@@ -53,6 +53,11 @@ export default function AddDoctorPage() {
     image: null as File | null,
   });
 
+
+  const handleLetterInput = (e: ChangeEvent<HTMLInputElement>, field: "name" | "languages") => {
+  const value = e.target.value.replace(/[^a-zA-Z\s]/g, ""); 
+  setFormData((prev) => ({ ...prev, [field]: value }));
+};
   // ================= TIME OPTIONS =================
 
   const generateTimeOptions = () => {
@@ -140,11 +145,31 @@ export default function AddDoctorPage() {
     setAvailability((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // ================= VALIDATION =================
+const validateDoctorForm = (doctor: Partial<Doctor> & { image?: File | null }) => {
+  const { name, specialization, email, phone } = doctor;
+
+  if (!name || !specialization || !email || !phone)
+    return "Please fill all required fields";
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) return "Invalid email address";
+
+  const phoneRegex = /^[0-9]{10,15}$/;
+  if (!phoneRegex.test(phone)) return "Invalid phone number";
+
+  return null;
+};
+
+
+  
   // ================= ADD =================
 
   const handleAdd = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+     const error = validateDoctorForm(formData);
+  if (error) return showToast(error, "error");
     try {
       if (
         !formData.name ||
@@ -281,16 +306,18 @@ export default function AddDoctorPage() {
                       </label>
 
                       <input
-                        className="form-control shadow-sm"
-                        placeholder={`Enter ${key}`}
-                        value={value as string}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            [key]: e.target.value,
-                          }))
-                        }
-                      />
+        className="form-control shadow-sm"
+        placeholder={`Enter ${key}`}
+        value={value as string}
+        onChange={(e) =>
+          key === "name" || key === "languages"
+            ? handleLetterInput(e, key as "name" | "languages")
+            : setFormData((prev) => ({
+                ...prev,
+                [key]: e.target.value,
+              }))
+        }
+      />
                     </div>
                   ))}
                 <div className="col-md-6">

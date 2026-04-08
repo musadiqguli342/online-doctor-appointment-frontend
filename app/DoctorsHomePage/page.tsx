@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
+import "toastify-js/src/toastify.css";
 import { useRouter, useSearchParams } from "next/navigation";
 import { showToast } from "../../utils/toast";
 import Image from "next/image";

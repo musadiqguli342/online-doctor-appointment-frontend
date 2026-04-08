@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Navbar from "../../../components/Navbar";
 import { useRouter } from "next/navigation";
-import { showToast } from "../../../utils/toast";
 import Image from "next/image";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;

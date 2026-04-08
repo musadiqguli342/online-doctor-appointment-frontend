@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState, FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { showToast } from "../../utils/toast";
+import "toastify-js/src/toastify.css";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 

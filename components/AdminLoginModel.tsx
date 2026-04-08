@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { showToast } from "../utils/toast";
-
+import "toastify-js/src/toastify.css";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AdminLoginModal({ show, setShow }: any) {

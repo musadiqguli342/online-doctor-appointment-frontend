@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import "toastify-js/src/toastify.css";
 import { showToast } from "@/utils/toast";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 

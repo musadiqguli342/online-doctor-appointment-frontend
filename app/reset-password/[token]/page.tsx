@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
+import "toastify-js/src/toastify.css";
 import { showToast } from "@/utils/toast";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;

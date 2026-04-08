@@ -1,6 +1,7 @@
 "use client"; 
 import { useState } from "react"; 
 import { useRouter } from "next/navigation"; 
+import "toastify-js/src/toastify.css";
 import { showToast } from "../../utils/toast"; 
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL; 
