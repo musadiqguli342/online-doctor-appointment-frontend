@@ -39,6 +39,7 @@ export default function AddDoctorPage() {
   const [duration, setDuration] = useState(30);
   const [selectedDate, setSelectedDate] = useState("");
   const [availability, setAvailability] = useState<AvailabilityRule[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState({
     name: "",
@@ -55,10 +56,81 @@ export default function AddDoctorPage() {
 
   
 
-  const handleLetterInput = (e: ChangeEvent<HTMLInputElement>, field: "name" | "languages") => {
-  const value = e.target.value.replace(/[^a-zA-Z\s]/g, ""); 
-  setFormData((prev) => ({ ...prev, [field]: value }));
+  // PURANA handleLetterInput delete karke ye wala use karo
+
+const handleLetterInput = (
+  e: ChangeEvent<HTMLInputElement>,
+  field: "name" | "languages" | "specialization"
+) => {
+  const value = e.target.value;
+
+  // Keep only letters and spaces
+  const cleanValue = value.replace(/[^a-zA-Z\s]/g, "");
+
+  setFormData((prev) => ({
+    ...prev,
+    [field]: cleanValue,
+  }));
+
+  // Set error if invalid
+  if (value !== cleanValue) {
+    setErrors((prev) => ({
+      ...prev,
+      [field]: `${field.charAt(0).toUpperCase() + field.slice(1)} should contain only letters`,
+    }));
+  } else {
+    // Clear error if valid
+    setErrors((prev) => ({ ...prev, [field]: "" }));
+  }
 };
+
+const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const value = e.target.value;
+  setFormData((prev) => ({ ...prev, email: value }));
+
+  if (!value) {
+    setErrors((prev) => ({ ...prev, email: "" }));
+  } else if (!value.includes("@")) {
+    // Friendly message if @ is missing
+    setErrors((prev) => ({ ...prev, email: "Please include @ in your email" }));
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    // Full regex validation
+    setErrors((prev) => ({ ...prev, email: "Invalid email address" }));
+  } else {
+    setErrors((prev) => ({ ...prev, email: "" }));
+  }
+};
+
+const handlePhoneChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const value = e.target.value;
+  setFormData((prev) => ({ ...prev, phone: value }));
+
+  if (!value) {
+    setErrors((prev) => ({ ...prev, phone: "" }));
+    return;
+  }
+
+  // Only allow +92 or 0 at start, followed by digits
+  if (!/^(\+92|0)[0-9]*$/.test(value)) {
+    setErrors((prev) => ({
+      ...prev,
+      phone: "Phone must start with +92 or 0 and contain only digits",
+    }));
+    return;
+  }
+
+  // Show error if number is incomplete
+  if ((value.startsWith("+92") && value.length !== 13) || 
+      (value.startsWith("0") && value.length !== 11)) {
+    setErrors((prev) => ({
+      ...prev,
+      phone: "Phone number is incomplete",
+    }));
+  } else {
+    setErrors((prev) => ({ ...prev, phone: "" }));
+  }
+};
+
   // ================= TIME OPTIONS =================
 
   const generateTimeOptions = () => {
@@ -160,98 +232,102 @@ type DoctorForm = {
   image?: File | null;
 };
 
-const validateDoctorForm = (doctor: DoctorForm) => {
-  const { name, specialization, email, phone } = doctor;
-
-  if (!name || !specialization || !email || !phone)
-    return "Please fill all required fields";
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) return "Invalid email address";
-
-  const phoneRegex = /^[0-9]{10,15}$/;
-  if (!phoneRegex.test(phone)) return "Invalid phone number";
-
-  return null;
+const validateDoctorForm = (key: string, value: string) => {
+  switch (key) {
+    case "name":
+      if (!/^[A-Za-z\s]+$/.test(value)) return "Only letters and spaces allowed";
+      break;
+    case "specialization":
+      if (!/^[A-Za-z\s]+$/.test(value)) return "Only letters allowed";
+      break;
+    case "email":
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Invalid email address";
+      break;
+   case "phone":
+      if (!/^(\+92|0)[0-9]+$/.test(value)) return "Phone must start with +92 or 0 and contain only digits";
+      if ((value.startsWith("+92") && value.length !== 13) || 
+          (value.startsWith("0") && value.length !== 11))
+        return "Phone number is incomplete";
+      break;
+  }
+  return "";
 };
 
 
   
   // ================= ADD =================
 
-  const handleAdd = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+ const handleAdd = async (e: FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
 
-     const error = validateDoctorForm(formData);
-  if (error) return showToast(error, "error");
+  // Validate required fields first
+ if (!formData.name || !formData.specialization || !formData.email || !formData.phone) {
+  return showToast("Please fill all required fields", "error");
+}
+
+  // Validate each field with regex
+  const fieldsToValidate: (keyof DoctorForm)[] = ["name", "specialization", "email", "phone"];
+  for (const key of fieldsToValidate) {
+    const value = formData[key] as string;
+    const error = validateDoctorForm(key, value);
+    if (error) return showToast(`${key}: ${error}`, "error");
+  }
+
+  try {
+    setLoading(true);
+
+    const payload = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (key === "image" && value) {
+        payload.append("image", value as File);
+      } else {
+        payload.append(key, value as string);
+      }
+    });
+
+    payload.append("availabilitySlots", JSON.stringify(availability));
+
+    const res = await fetch(`${API_URL}/api/doctors`, {
+      method: "POST",
+      body: payload,
+    });
+
+    let data;
     try {
-      if (
-        !formData.name ||
-        !formData.specialization ||
-        !formData.email ||
-        !formData.phone
-      ) {
-        return showToast("Please fill all required fields", "error");
-      }
-
-      setLoading(true);
-
-      const payload = new FormData();
-
-      Object.entries(formData).forEach(([key, value]) => {
-        if (key === "image" && value) {
-          payload.append("image", value as File);
-        } else {
-          payload.append(key, value as string);
-        }
-      });
-
-      payload.append("availabilitySlots", JSON.stringify(availability));
-
-      const res = await fetch(`${API_URL}/api/doctors`, {
-        method: "POST",
-        body: payload,
-      });
-
-      let data;
-
-      try {
-        data = await res.json();
-      } catch {
-        throw new Error("Server error");
-      }
-
-      if (!res.ok) {
-        showToast(data.message || "Failed to add doctor", "error");
-        return;
-      }
-
-      showToast("Doctor added successfully", "success");
-
-      setFormData({
-        name: "",
-        specialization: "",
-        email: "",
-        phone: "",
-        experience: "",
-        education: "",
-        certifications: "",
-        languages: "",
-        hospital: "",
-        image: null,
-      });
-
-      setPreview(null);
-      setAvailability([]);
-
-      fetchDoctors();
-    } catch (error) {
-      console.error(error);
-      showToast("Server error", "error");
-    } finally {
-      setLoading(false);
+      data = await res.json();
+    } catch {
+      throw new Error("Server error");
     }
-  };
+
+    if (!res.ok) {
+      showToast(data.message || "Failed to add doctor", "error");
+      return;
+    }
+
+    showToast("Doctor added successfully", "success");
+
+    setFormData({
+      name: "",
+      specialization: "",
+      email: "",
+      phone: "",
+      experience: "",
+      education: "",
+      certifications: "",
+      languages: "",
+      hospital: "",
+      image: null,
+    });
+    setPreview(null);
+    setAvailability([]);
+    fetchDoctors();
+  } catch (error) {
+    console.error(error);
+    showToast("Server error", "error");
+  } finally {
+    setLoading(false);
+  }
+};
   // ================= UPDATE =================
 
   const handleUpdate = async (e: FormEvent<HTMLFormElement>) => {
@@ -323,16 +399,21 @@ const validateDoctorForm = (doctor: DoctorForm) => {
         className="form-control shadow-sm"
         placeholder={`Enter ${key}`}
         value={value as string}
-        onChange={(e) =>
-          key === "name" || key === "languages"
-            ? handleLetterInput(e, key as "name" | "languages")
-            : setFormData((prev) => ({
-                ...prev,
-                [key]: e.target.value,
-              }))
-        }
-      />
-                    </div>
+  onChange={(e) =>
+    key === "name" || key === "languages" || key === "specialization"
+      ? handleLetterInput(e, key as "name" | "languages" | "specialization")
+      : key === "phone"
+    ? handlePhoneChange(e)
+    : key === "email"
+    ? handleEmailChange(e)
+    : setFormData((prev) => ({ ...prev, [key]: e.target.value }))
+  }
+/>
+
+{errors[key] && (
+  <div className="form-text text-danger">{errors[key]}</div>
+)}
+    </div>
                   ))}
                 <div className="col-md-6">
                   <input
